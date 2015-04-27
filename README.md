@@ -43,19 +43,19 @@ and a line of code to fetch and run the build script.
 The following variables are required and need to be set to the environment for
 the script to properly function:
 
- - `GH_PAGES_TARGET_REPO`
- - `GH_PAGES_SOURCE_REPOS`
+ - `NEWCOMEN_TARGET_REPO`
+ - `NEWCOMEN_SOURCE_REPOS`
  - `GH_TOKEN`
 
-##### `GH_PAGES_TARGET_REPO`
+##### `NEWCOMEN_TARGET_REPO`
 
-The `GH_PAGES_TARGET_REPO` should contain the repository name the Github Pages
+The `NEWCOMEN_TARGET_REPO` should contain the repository name the Github Pages
 website is to be served from, in the following format: `user-name/repository-name`.
 For instance `potherca/newcomen-demo-site`  
 
-##### `GH_PAGES_SOURCE_REPOS`
+##### `NEWCOMEN_SOURCE_REPOS`
 
-The `GH_PAGES_SOURCE_REPOS` should contain the repository names of the sources
+The `NEWCOMEN_SOURCE_REPOS` should contain the repository names of the sources
 the website should be built from. It takes the format of a comma separated list,
 for instance  `potherca/newcomen-demo-content,potherca/newcomen-demo-templates`
 
@@ -67,24 +67,24 @@ setting that in the `GH_TOKEN` environmental variable.
 ##### Other options
 
 By default, all commits to the target repository will be done using the
-[Potherca Bot]. To use a different author the following varialbes can be set to
+[Potherca Bot]. To use a different author the following variables can be set to
 alter the author name and email:
 
- - `IW_AUTHOR_NAME`
- - `IW_AUTHOR_EMAIL`
+ - `NEWCOMEN_AUTHOR_NAME`
+ - `NEWCOMEN_AUTHOR_EMAIL`
 
 #### Build Script
 
 The following command will fetch and run the build script from this repository
 with the environmental variables:
 
-    curl -sS https://raw.github.com/potherca/newcomen/master/build.sh | bash
+    curl -sS https://raw.githubusercontent.com/potherca/newcomen/master/build.sh | bash
 
 ### Variations
 
 The content that the target repository should be build from can reside in more
 than two repositories. Simply add more repository names to the list in the
-`GH_PAGES_SOURCE_REPOS` variable.
+`NEWCOMEN_SOURCE_REPOS` variable.
 
 ## About the name
 
