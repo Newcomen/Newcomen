@@ -2,7 +2,9 @@
 permalink: /
 ---
 
-# Newcomen [![Project Stage Badge: Development]][Project Stage Page] ![License Badge]
+# [Newcomen]
+
+[![Project Stage Badge: Development]][Project Stage Page] ![License Badge]
 
 ## Introduction
 
@@ -100,3 +102,4 @@ Also, all of the other character's names were already taken.
 [Github Pages]: https://pages.github.com/
 [Github token]: https://github.com/blog/1509-personal-api-tokens
 [Potherca Bot]: https://github.com/potherca-bot
+[Newcomen]: https://github.com/potherca/Newcomen/
