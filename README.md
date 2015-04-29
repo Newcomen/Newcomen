@@ -2,12 +2,12 @@
 
 [![Project Stage Badge: Development]][Project Stage Page] [![License Badge]][GPL-3.0 License]
 
-This projects contains a (not-so-simple) script and some documentation explaining how to
-create a setup that hosts a website on [Github Pages] without
-mixing the content of the website with the website's templates and resources.
+This repository contains a (not-so-simple) script that will gather the contents of given source repositories, combine them and push them to a given target repository.
 
-For full documentation please visit [the project website][Newcomen].
+## For full documentation please visit [the project website][Newcomen].
+
 ---
+
 Created by [Potherca] under a [GPL-3.0 License].
 
 [Project Stage Badge: Development]: http://img.shields.io/badge/Project%20Stage-Development-yellowgreen.svg
