@@ -157,8 +157,10 @@ function restoreSourceContent() {
 function storeGitUser() {
     printStatus "Storing Git User and Email"
 
+    set +e
     sOriginalGitMail="$(git config --get --global user.email)"
     sOriginalGitUser="$(git config --get --global user.name)"
+    set -e
 }
 
 # ------------------------------------------------------------------------------
