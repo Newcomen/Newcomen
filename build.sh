@@ -274,7 +274,7 @@ function commitContent() {
 
     git checkout -b "${sMergeBranch}" | indent
     git add -A | indent
-    git commit -a -m "${sApplicationName}: Adding changes from source repositories." | indent
+    git commit -a -m "${sApplicationName}: Adding changes from source repositories. $(date +'%C%y-%m-%d %k:%M')" | indent
 }
 
 # ------------------------------------------------------------------------------
