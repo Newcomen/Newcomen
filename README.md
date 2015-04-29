@@ -61,11 +61,11 @@ The `NEWCOMEN_SOURCE_REPOS` should contain the repository names of the sources
 the website should be built from. It takes the format of a comma separated list,
 for instance  `potherca/newcomen-demo-content,potherca/newcomen-demo-templates`.
 
-The source repositories should be listed in order of importance, that is to say, 
+The source repositories should be listed in order of importance, that is to say,
 the most important repository should be the first in the list, followed by the
 less important, and so on.
 
-In the case that a file is present in more than one repository, the file from 
+In the case that a file is present in more than one repository, the file from
 the most important repository (most foremost in the list) will take precedence.
 
 ##### `GH_TOKEN`
@@ -87,7 +87,7 @@ alter the author name and email:
 The following command will fetch and run the build script from this repository
 with the environmental variables:
 
-    curl -sS https://raw.githubusercontent.com/potherca/newcomen/master/build.sh | bash
+    curl -sS https://raw.githubusercontent.com/Newcomen/Newcomen/master/build.sh | bash
 
 ### Variations
 
