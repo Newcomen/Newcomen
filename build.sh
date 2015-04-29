@@ -25,6 +25,8 @@ readonly sTmpDirectory=".${sApplicationName}SourceRepositoryContent"
 # ------------------------------------------------------------------------------
 sGitUser='potherca-bot'
 sGitMail='potherca+bot@gmail.com'
+sOriginalGitUser=''
+sOriginalGitMail=''
 # ------------------------------------------------------------------------------
 sGithubToken=''
 sSourceRepo=''
@@ -140,11 +142,32 @@ function storeSourceContent() {
 
 # ------------------------------------------------------------------------------
 function restoreSourceContent() {
-    printStatus "Restoring content from ${sSourceRepo}"
+    printStatus "Content for ${sSourceRepo} will be restored"
+
+    removeGitDir
 
     for sFile in $(ls -A "${sTmpDirectory}"); do
         mv "${sTmpDirectory}/${sFile}" .
     done
+
+    makeGitIgnoreTempDirectory
+}
+
+# ------------------------------------------------------------------------------
+function storeGitUser() {
+    printStatus "Storing Git User and Email"
+
+    sOriginalGitMail="$(git config --get --global user.email)"
+    sOriginalGitUser="$(git config --get --global user.name)"
+}
+
+# ------------------------------------------------------------------------------
+function restoreGitUser() {
+    if [ -n "${sOriginalGitUser}" ] && [ -n "${sOriginalGitUser}" ]; then
+        printStatus "Restoring Git User and Email to ${sOriginalGitUser}<${sOriginalGitMail}>"
+        git config --global user.email "${sOriginalGitMail}"
+        git config --global user.name "${sOriginalGitUser}"
+    fi
 }
 
 # ------------------------------------------------------------------------------
@@ -158,22 +181,61 @@ function setGitUser() {
 # ------------------------------------------------------------------------------
 function addRepositoryContent() {
     local sRepo="$1"
-    printTopic "Adding content from ${sRepo}"
+    printTopic "Adding content for ${sRepo}"
 
+    sFirstRepo=${aSourceRepos[${#aSourceRepos[@]}-1]}
+
+    # @TODO: If the sSourceRepo is the sFirstRepo there's no need to store/restore
+    #        The content can be left alone. Add check here and at (re)store points
     if [ "${sRepo}" == "${sSourceRepo}" ];then
         restoreSourceContent
+    elif [ "${sRepo}" == "${sFirstRepo}" ];then
+        printStatus "Content for ${sRepo} will be retrieved"
+
+        createGitRepository
+
+        addRemoteToRepository "${sRepo}"
+
+        fetchFromRemote
+
+        sBranch="$(getBranch)"
+        printStatus "Switching to branch ${sBranch}"
+        git checkout "${sBranch}" | indent
     else
-        fetchRepositoryContent "${sRepo}"
+        retrieveRepositoryContent "${sRepo}"
     fi
+}
+
+# ------------------------------------------------------------------------------
+function fetchFromRemote() {
+    printStatus 'Fetching from remote'
+    git fetch | indent
+}
+
+# ------------------------------------------------------------------------------
+function removeGitDir() {
+    rm -Rf .git
+}
+
+# ------------------------------------------------------------------------------
+function makeGitIgnoreTempDirectory() {
+    echo "${sTmpDirectory}" >> '.git/info/exclude'
+}
+
+# ------------------------------------------------------------------------------
+function createGitRepository() {
+    git init | indent
+
+    makeGitIgnoreTempDirectory
 }
 
 # ------------------------------------------------------------------------------
 function prepareRepository() {
     printStatus "Preparing the directory"
 
-    rm -Rf .git
+    removeGitDir
 
-    git init | indent
+    createGitRepository
 }
 
 # ------------------------------------------------------------------------------
@@ -214,11 +276,11 @@ function commitContent() {
 }
 
 # ------------------------------------------------------------------------------
-function fetchRepositoryContent() {
+function retrieveRepositoryContent() {
     local sRepo="$1"
     local sMergeBranch='newcomen-merge-branche'
 
-    printStatus "Fetching content from ${sSourceRepo}"
+    printStatus "Content for ${sRepo} will be retrieved"
 
     prepareRepository
 
@@ -226,11 +288,13 @@ function fetchRepositoryContent() {
 
     commitContent "${sMergeBranch}"
 
-    printStatus 'Fetching from remote'
-    git fetch | indent
+    fetchFromRemote
 
     sBranch="$(getBranch)"
+    printStatus "Switching to branch ${sBranch}"
     git checkout "${sBranch}" | indent
+
+    printStatus "Merging content from branch ${sMergeBranch}"
     git merge --strategy=recursive --strategy-option=theirs "${sMergeBranch}" -m "${sApplicationName}: Merging content from source repositories." | indent
 }
 
@@ -238,17 +302,34 @@ function fetchRepositoryContent() {
 function pushContents() {
     local sBranch="$1"
     printTopic "Sending merged content to target: origin ${sBranch}"
+    # @TODO: Add --dry-run option when long-parameters have been implemented
     git push origin "${sBranch}" | indent
+}
+
+function cleanupBuild() {
+    printTopic 'Running clean-up'
+
+    restoreGitUser
+}
+
+function prepareBuild() {
+    printTopic 'Preparing build'
+
+    storeGitUser
+
+    trap cleanupBuild EXIT
+
+    setGitUser
+
+    storeSourceName
+    storeSourceContent
 }
 
 # ------------------------------------------------------------------------------
 function runBuild() {
     local sBranch=''
 
-    printTopic 'Preparing build'
-    setGitUser
-    storeSourceName
-    storeSourceContent
+    prepareBuild
 
     printTopic 'Handling Source Repositories'
     # Handle Source Repos in reverse, so the most important repo is fetched last
@@ -256,7 +337,7 @@ function runBuild() {
         addRepositoryContent "${aSourceRepos[$iCounter]}"
     done
 
-    printTopic 'Handling Target Repositories'
+    printTopic 'Handling Target Repository'
     addRepositoryContent "${sTargetRepo}"
     pushContents "${sBranch}"
 
