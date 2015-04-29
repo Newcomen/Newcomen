@@ -20,19 +20,25 @@ set -u
 # ==============================================================================
 
 # ==============================================================================
-readonly sApplicationName='Newcomen'
-readonly sTmpDirectory=".${sApplicationName}SourceRepositoryContent"
-# ------------------------------------------------------------------------------
-sGitUser='potherca-bot'
-sGitMail='potherca+bot@gmail.com'
-sOriginalGitUser=''
-sOriginalGitMail=''
-# ------------------------------------------------------------------------------
+# Values that need to be filled by the user
 sGithubToken=''
 sSourceRepo=''
 sTargetRepo=''
 # ------------------------------------------------------------------------------
+# Default values that can be overwritten by the user
+sGitUser='potherca-bot'
+sGitMail='potherca+bot@gmail.com'
+# ------------------------------------------------------------------------------
+# Global variables the script will fill in
+sOriginalGitUser=''
+sOriginalGitMail=''
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 declare -a aSourceRepos
+# ------------------------------------------------------------------------------
+# Inmutable values
+readonly sApplicationName='Newcomen'
+readonly sTmpDirectory=".${sApplicationName}SourceRepositoryContent"
+readonly sMergeBranch='newcomen-merge-branche'
 # ==============================================================================
 
 
@@ -151,6 +157,7 @@ function restoreSourceContent() {
     done
 
     makeGitIgnoreTempDirectory
+    printStatus "Restored content for ${sSourceRepo}"
 }
 
 # ------------------------------------------------------------------------------
@@ -268,8 +275,6 @@ function getBranch() {
 
 # ------------------------------------------------------------------------------
 function commitContent() {
-    local sMergeBranch="$1"
-
     printStatus "Committing content to branch ${sMergeBranch}"
 
     git checkout -b "${sMergeBranch}" | indent
@@ -278,9 +283,23 @@ function commitContent() {
 }
 
 # ------------------------------------------------------------------------------
+function mergeContent() {
+    local sRepo="$1"
+
+    printStatus "Merging content from branch ${sMergeBranch}"
+
+    if [ "${sRepo}" == "${sTargetRepo}" ];then
+        sOption='theirs'
+    else
+        sOption='ours'
+    fi
+
+    git merge --strategy=recursive --strategy-option="$sOption" "${sMergeBranch}" -m "${sApplicationName}: Merging content from source repositories." | indent
+}
+
+# ------------------------------------------------------------------------------
 function retrieveRepositoryContent() {
     local sRepo="$1"
-    local sMergeBranch='newcomen-merge-branche'
 
     printStatus "Content for ${sRepo} will be retrieved"
 
@@ -288,7 +307,7 @@ function retrieveRepositoryContent() {
 
     addRemoteToRepository "${sRepo}"
 
-    commitContent "${sMergeBranch}"
+    commitContent
 
     fetchFromRemote
 
@@ -296,8 +315,7 @@ function retrieveRepositoryContent() {
     printStatus "Switching to branch ${sBranch}"
     git checkout "${sBranch}" | indent
 
-    printStatus "Merging content from branch ${sMergeBranch}"
-    git merge --strategy=recursive --strategy-option=theirs "${sMergeBranch}" -m "${sApplicationName}: Merging content from source repositories." | indent
+    mergeContent "${sRepo}"
 }
 
 # ------------------------------------------------------------------------------
@@ -305,13 +323,15 @@ function pushContents() {
     local sBranch="$1"
     printTopic "Sending merged content to target: origin ${sBranch}"
     # @TODO: Add --dry-run option when long-parameters have been implemented
-    git push origin "${sBranch}" | indent
+    git push -- origin "${sBranch}" | indent
 }
 
 function cleanupBuild() {
     printTopic 'Running clean-up'
 
     restoreGitUser
+
+    echo 'Done.'
 }
 
 function prepareBuild() {
@@ -342,8 +362,6 @@ function runBuild() {
     printTopic 'Handling Target Repository'
     addRepositoryContent "${sTargetRepo}"
     pushContents "${sBranch}"
-
-    echo 'Done.'
 }
 
 # ------------------------------------------------------------------------------
